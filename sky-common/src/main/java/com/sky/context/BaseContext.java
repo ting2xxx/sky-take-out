@@ -1,19 +1,30 @@
 package com.sky.context;
-
+/**
+ * Context Holder using the strategy pattern
+ */
 public class BaseContext {
 
-    public static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
+    //1. Default to our ThreadLocal implementation
+    private static UserContextStrategy strategy = new ThreadLocalUserContextStrategy();
+
+    //2. Allow swapping the strategy at runtime
+    public static void setStrategy(UserContextStrategy customStrategy) throws IllegalAccessException {
+        if (customStrategy == null) {
+            throw new IllegalAccessException("Strategy cannot be null");
+        }
+        BaseContext.strategy = customStrategy;
+    }
 
     public static void setCurrentId(Long id) {
-        threadLocal.set(id);
+        strategy.setCurrentId(id);
     }
 
     public static Long getCurrentId() {
-        return threadLocal.get();
+        return strategy.getCurrentId();
     }
 
     public static void removeCurrentId() {
-        threadLocal.remove();
+        strategy.removeCurrentId();
     }
 
 }
