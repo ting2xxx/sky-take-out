@@ -17,6 +17,7 @@ import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
 import com.sky.service.EmployeeService;
+import com.sky.vo.EmployeeVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -83,13 +84,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setStatus(StatusConstant.ENABLE);
         //设置默认密码
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
-        //设置创建时间和更新时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-
-        //设置创建人和修改人
-        employee.setCreateUser(BaseContext.getCurrentId());
-        employee.setUpdateUser(BaseContext.getCurrentId());
 
         employeeMapper.insert(employee);
     }
@@ -109,4 +103,59 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(total, record);
     }
 
+    /**
+     * 修改员工状态
+     * @param status
+     * @param id
+     */
+    @Override
+    public void setEmployeeStatus(Integer status, Long id) {
+
+        //1. Validate the status value
+        if (!status.equals(StatusConstant.ENABLE) && !status.equals(StatusConstant.DISABLE)) {
+            throw new BaseException("Invalid status value");
+        }
+        //2. Build and update
+        Employee employee = Employee.builder()
+                .id(id)
+                .status(status)
+                .updateUser(BaseContext.getCurrentId())
+                .updateTime(LocalDateTime.now())
+                .build();
+
+        employeeMapper.update(employee);
+    }
+
+    /**
+     * 根据id查询员工
+     * @param id
+     * @return
+     */
+    @Override
+    public EmployeeVO getById(Long id) {
+        //1. Get the raw data from the database
+        Employee employee = employeeMapper.getById(id);
+
+        //2. Protect against NullPointerException
+        if (employee == null) {
+           throw new BaseException("Employee not found");
+        }
+
+        //3. Convert Entity to VO
+        EmployeeVO employeeVO = new EmployeeVO();
+
+        //4. Copy properties from Entity to VO
+        BeanUtils.copyProperties(employee, employeeVO);
+
+        return employeeVO;
+    }
+
+    @Override
+    public void update(EmployeeDTO employeeDto) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDto, employee);
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        employee.setUpdateTime(LocalDateTime.now());
+        employeeMapper.update(employee);
+    }
 }

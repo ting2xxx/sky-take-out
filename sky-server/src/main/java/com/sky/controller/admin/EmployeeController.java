@@ -11,6 +11,7 @@ import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
 import com.sky.vo.EmployeeLoginVO;
+import com.sky.vo.EmployeeVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -88,5 +89,23 @@ public class EmployeeController {
     public Result<PageResult> page(EmployeePageQueryDTO employeePageQueryDTO) {
         PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO);
         return Result.success(pageResult);
+    }
+
+    @PostMapping("/status/{status}")
+    public Result setEmployeeStatus(@PathVariable("status") Integer status, Long id) {
+        employeeService.setEmployeeStatus(status, id);
+        return Result.success();
+    }
+
+    @GetMapping("/{id}")
+    public Result<EmployeeVO> getById(@PathVariable("id") Long id) {
+        EmployeeVO employee = employeeService.getById(id);
+        return Result.success(employee);
+    }
+
+    @PutMapping
+    public Result update(@RequestBody EmployeeDTO employeeDto) {
+        employeeService.update(employeeDto);
+        return Result.success();
     }
 }
